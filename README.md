@@ -1,3 +1,5 @@
+#  Work In Progress. Please DO NOT USE right now.
+
 [![Build Status](https://travis-ci.org/simplabs/ember-simple-auth.png)](https://travis-ci.org/simplabs/ember-simple-auth)
 
 #  Ember.SimpleAuth
