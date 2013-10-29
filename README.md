@@ -4,7 +4,7 @@
 - WSSE Explanation
 - Unit tests
 
-[![Build Status](https://travis-ci.org/gerfaut/ember-simple-wsse-auth.png)](https://travis-ci.org/gerfaut/ember-simple-wsse-auth)
+[![Build Status](https://travis-ci.org/Gerfaut/ember-simple-wsse-auth.png)](https://travis-ci.org/Gerfaut/ember-simple-wsse-auth)
 
 ## Up-to-date Documentation must be done.
 
