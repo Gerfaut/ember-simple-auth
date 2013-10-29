@@ -44,11 +44,11 @@
   <div class="page-header">
     <h1>Login</h1>
   </div>
-  {{! login form; the fields must be named "identification" and "password"; the controller action is "login" }}
+  {{! login form; the fields must be named "username" and "password"; the controller action is "login" }}
   <form {{action login on='submit'}}>
     <div class="form-group">
       <label for="identification">Login</label>
-      {{view Ember.TextField id='identification' valueBinding='identification' placeholder='Enter Login' class='form-control'}}
+      {{view Ember.TextField id='username' valueBinding='username' placeholder='Enter Login' class='form-control'}}
     </div>
     <div class="form-group">
       <label for="password">Password</label>
@@ -73,11 +73,11 @@
 </script>
 
 <script>
-  // setup Ember.SimpleAuth in an initializer
+  // setup Ember.SimpleWsseAuth in an initializer
   Ember.Application.initializer({
     name: 'authentication',
     initialize: function(container, application) {
-      Ember.SimpleAuth.setup(application);
+      Ember.SimpleWsseAuth.setup(application);
     }
   });
 
@@ -92,7 +92,7 @@
   });
 
   // login controller that display an error if the login fails
-  App.LoginController = Ember.Controller.extend(Ember.SimpleAuth.LoginControllerMixin, {
+  App.LoginController = Ember.Controller.extend(Ember.SimpleWsseAuth.SaltControllerMixin, {
     loginFailed: function(xhr) {
       var response = JSON.parse(xhr.responseText);
       this.set('errorMessage', response.error);
@@ -107,8 +107,8 @@
       });
     }
   });
-  App.LogoutRoute = Ember.Route.extend(Ember.SimpleAuth.LogoutRouteMixin);
+  App.LogoutRoute = Ember.Route.extend(Ember.SimpleWsseAuth.LogoutRouteMixin);
 
   // make this route protected
-  App.ProtectedRoute = Ember.Route.extend(Ember.SimpleAuth.AuthenticatedRouteMixin);
+  App.ProtectedRoute = Ember.Route.extend(Ember.SimpleWsseAuth.AuthenticatedRouteMixin);
 </script>

@@ -62,11 +62,11 @@
   <div class="page-header">
     <h1>Login</h1>
   </div>
-  {{! login form; the fields must be named "identification" and "password"; the controller action is "login" }}
+  {{! login form; the fields must be named "username" and "password"; the controller action is "login" }}
   <form {{action login on='submit'}}>
     <div class="form-group">
       <label for="identification">Login</label>
-      {{view Ember.TextField id='identification' valueBinding='identification' placeholder='Enter Login' class='form-control'}}
+      {{view Ember.TextField id='username' valueBinding='username' placeholder='Enter Login' class='form-control'}}
     </div>
     <div class="form-group">
       <label for="password">Password</label>
@@ -91,45 +91,23 @@
 </script>
 
 <script>
-  // setup Ember.SimpleAuth in an initializer
+  // setup Ember.SimpleWsseAuth in an initializer
   Ember.Application.initializer({
     name: 'authentication',
     initialize: function(container, application) {
-      //customize the session so that it handles the additional authenticated account
-      Ember.SimpleAuth.Session.reopen({
-        init: function() {
-          this._super();
-          //initializer the accountId from data potentially already present in the
-          //sessionStorage (Ember.SimpleAuth.Session does this out of the box for authToken)
-          this.set('accountId', sessionStorage.accountId);
-        },
-        setup: function(serverSession) {
-          this._super(serverSession);
-          this.set('accountId', serverSession.session.accountId);
-        },
-        destroy: function() {
-          this._super();
-          this.set('accountId', undefined);
-        },
-        accountIdChanged: function() {
-          //save accountId in the sessionStorage so it survives a page reload (Ember.SimpleAuth.Session
-          //does this out of the box for authToken)
-          sessionStorage.accountId = this.get('accountId');
-        }.observes('accountId'),
-        account: function() {
-          var accountId = this.get('accountId');
-          if (!Ember.isEmpty(accountId)) {
-            this.set('account', container.lookup('store:main').find('account', accountId));
-          }
-        }.property('accountId')
-      });
-      //set a custom session endpoint
-      Ember.SimpleAuth.setup(application, { serverSessionRoute: '/v2/session' });
+      Ember.SimpleWsseAuth.setup(application);
     }
   });
-
+  
   App = Ember.Application.create({});
 
+  /* Test connection before render */
+  App.ApplicationRoute = Ember.Route.extend({
+    setupController: function(controller) {
+      this.controllerFor('login').send('checkAccess');
+    }
+  });
+  
   App.Account = DS.Model.extend({
     login: DS.attr(),
     name: DS.attr()
@@ -150,11 +128,7 @@
   });
 
   // login controller that display an error if the login fails
-  App.LoginController = Ember.Controller.extend(Ember.SimpleAuth.LoginControllerMixin, {
-    // serialize the credentials from the view to what the server expects
-    serializeCredentials: function(identification, password) {
-      return { USER_NAME: identification, PASS: password };
-    },
+  App.LoginController = Ember.Controller.extend(Ember.SimpleWsseAuth.SaltControllerMixin, {
     loginFailed: function(xhr) {
       var response = JSON.parse(xhr.responseText);
       this.set('errorMessage', response.error);
@@ -165,15 +139,15 @@
   App.LoginRoute = Ember.Route.extend({
     setupController: function(controller, model) {
       controller.setProperties({
-        identification: undefined, password: undefined, errorMessage: undefined
+        username:undefined, passwordDigest: undefined, errorMessage: undefined
       });
     }
   });
-  App.LogoutRoute = Ember.Route.extend(Ember.SimpleAuth.LogoutRouteMixin);
+  App.LogoutRoute = Ember.Route.extend(Ember.SimpleWsseAuth.LogoutRouteMixin);
 
   // make these routes protected
-  App.ProtectedRoute = Ember.Route.extend(Ember.SimpleAuth.AuthenticatedRouteMixin);
-  App.PostsRoute = Ember.Route.extend(Ember.SimpleAuth.AuthenticatedRouteMixin, {
+  App.ProtectedRoute = Ember.Route.extend(Ember.SimpleWsseAuth.AuthenticatedRouteMixin);
+  App.PostsRoute = Ember.Route.extend(Ember.SimpleWsseAuth.AuthenticatedRouteMixin, {
     model: function() {
       return this.get('store').findAll('post');
     }

@@ -2,9 +2,9 @@
 
 [![Build Status](https://travis-ci.org/simplabs/ember-simple-auth.png)](https://travis-ci.org/simplabs/ember-simple-auth)
 
-#  Ember.SimpleAuth
+#  Ember.SimpleWsseAuth
 
-Ember.SimpleAuth is a lightweight and unobtrusive library for implementing
+Ember.SimpleWsseAuth is a lightweight and unobtrusive library for implementing
 token based authentication with [Ember.js](http://emberjs.com) applications. It
 has minimal requirements with respect to the application structure, routes etc.
 as well as the server interface.
@@ -17,20 +17,20 @@ with their credentials and that - given the credentials are valid - responds
 with a secret token that the client then uses to identify the user in
 subsequent requests.
 
-The secret token is usually sent in a custom header. Ember.SimpleAuth
+The secret token is usually sent in a custom header. Ember.SimpleWsseAuth
 uses ```X-AUTHENTICATION-TOKEN``` and automatically injects this header into
 all AJAX requests.
 
 ## Usage
 
-Ember.SimpleAuth only requires 2 routes and one template/controller. To enable
+Ember.SimpleWsseAuth only requires 2 routes and one template/controller. To enable
 it it's best to use a custom initializer:
 
 ```js
 Ember.Application.initializer({
   name: 'authentication',
   initialize: function(container, application) {
-    Ember.SimpleAuth.setup(application);
+    Ember.SimpleWsseAuth.setup(application);
   }
 });
 ```
@@ -46,11 +46,11 @@ App.Router.map(function() {
 
 To wire everything up, the generated ```App.LoginController``` and
 ```App.LogoutRoute``` need to implement the respective mixins provided by
-Ember.SimpleAuth:
+Ember.SimpleWsseAuth:
 
 ```js
-App.LoginController = Ember.Controller.extend(Ember.SimpleAuth.LoginControllerMixin);
-App.LogoutRoute     = Ember.Route.extend(Ember.SimpleAuth.LogoutRouteMixin);
+App.LoginController = Ember.Controller.extend(Ember.SimpleWsseAuth.LoginControllerMixin);
+App.LogoutRoute     = Ember.Route.extend(Ember.SimpleWsseAuth.LogoutRouteMixin);
 ```
 
 The last step is to add a template that renders the login form:
@@ -70,13 +70,13 @@ every AJAX request (unless it's a cross domain request) will include
 
 To actually make a route in the application protected and inaccessible when no
 user is authenticated, simply implement the
-```Ember.SimpleAuth.AuthenticatedRouteMixin``` in the respective route:
+```Ember.SimpleWsseAuth.AuthenticatedRouteMixin``` in the respective route:
 
 ```js
 App.Router.map(function() {
   this.route('protected');
 });
-App.ProtectedRoute = Ember.Route.extend(Ember.SimpleAuth.AuthenticatedRouteMixin);
+App.ProtectedRoute = Ember.Route.extend(Ember.SimpleWsseAuth.AuthenticatedRouteMixin);
 ```
 
 This will make the route redirect to ```/login``` (or a different URL if
@@ -87,7 +87,7 @@ login/logout buttons depending on whether the user is currently authenticated
 or not, simple add something like this to the respective template:
 
 ```html
-{{#if session.isAuthenticated}}
+{{#if session.isValid}}
   {{#link-to 'logout'}}Logout{{/link-to}}
   <p class="navbar-text pull-right">Your are currently signed in</p>
 {{else}}
@@ -150,7 +150,7 @@ Open [http://localhost:4567](http://localhost:4567) to access the examples.
 
 ## Installation
 
-To install Ember.SimpleAuth in you Ember.js application you have several
+To install Ember.SimpleWsseAuth in you Ember.js application you have several
 options:
 
 * If you're using [Bower](http://bower.io), just add it to your
@@ -170,7 +170,7 @@ options:
 
 ## Building
 
-To build Ember.SimpleAuth yourself you need to have Ruby (at least version
+To build Ember.SimpleWsseAuth yourself you need to have Ruby (at least version
 1.9.3) and the [bundler gem](http://bundler.io) installed. If you have that,
 building is as easy as running:
 

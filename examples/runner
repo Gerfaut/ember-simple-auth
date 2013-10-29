@@ -2,8 +2,8 @@
 
 base_dir = File.dirname(__FILE__)
 
-unless File.exists?(File.join(base_dir, '..', 'dist', 'ember-simple-auth.js'))
-  puts "\n** dist/ember-simple-auth.js doesn't exist, building it first...\n\n"
+unless File.exists?(File.join(base_dir, '..', 'dist', 'ember-simple-wsse-auth.js'))
+  puts "\n** dist/ember-simple-wsse-auth.js doesn't exist, building it first...\n\n"
   `cd .. && bundle && bundle exec rake dist`
 end
 
@@ -17,9 +17,14 @@ get '/' do
   erb :index
 end
 
+# serve the dependency JS file from the /packages directory
+get '/base64_encode.js' do
+  File.read(File.join(base_dir, '..', 'packages/phpjs', 'base64_encode.js'))
+end
+
 # serve the JS file from the /dist directory
-get '/ember-simple-auth.js' do
-  File.read(File.join(base_dir, '..', 'dist', 'ember-simple-auth.js'))
+get '/ember-simple-wsse-auth.js' do
+  File.read(File.join(base_dir, '..', 'dist', 'ember-simple-wsse-auth.js'))
 end
 
 # serve the HTML files from the respective example directoy
@@ -30,69 +35,38 @@ end
 end
 
 # session creation endpoint; successfull if credentials are letme/in
-post '/session' do
-  payload = request.body.read
-  json    = JSON.parse(payload)
-  if json['session']['identification'] == 'letme' && json['session']['password'] == 'in'
-    [200, { 'Content-Type' => 'application/json' }, ['{ "session": { "authToken": "secret token!" } }']]
+get '/salt/:username' do
+  if params[:username] == 'letme'
+    [200, { 'Content-Type' => 'application/json' }, ['{ "session": { "salt": "thisIsMySalt", "username":"letme" } }']]
   else
-    [422, { 'Content-Type' => 'application/json' }, ['{ "error": "invalid credentials" }']]
+    [422, { 'Content-Type' => 'application/json' }, ['{ "error": "invalid login" }']]
   end
 end
 
-# session deletion endpoint
-delete '/session' do
-  [200, { 'Content-Type' => 'application/json' }, ['']]
+get '/check-access' do
+  
+  if env['HTTP_AUTHORIZATION'] == 'Authorization profile="UsernameToken"' \
+        && /Username=letme/.match(env['HTTP_X_WSSE']) \
+        && /PasswordDigest=|YnZHI2jnwkDvIZhvinTOFSBrI\+FfaAuL2Pp4sdmYQhll\/5Hg1pQNP\/yZAxbrjRViRpk6qA+WOJphf8AtH0WUKQ==/.match(env['HTTP_X_WSSE']) \
+        && /Nonce/.match(env['HTTP_X_WSSE']) \
+        && /Created/.match(env['HTTP_X_WSSE'])
+    [200, { 'Content-Type' => 'application/json' }, ['{ "success": "login successful" }']] 
+  else
+    [403, { 'Content-Type' => 'application/json' }, ['{ "error": "invalid credentials" }']]
+  end
 end
 
 # posts endpoint; successful if a valid authentication token header is sent
 get '/posts' do
-  if env['HTTP_X_AUTHENTICATION_TOKEN'] == 'secret token!'
+  if env['HTTP_AUTHORIZATION'] == 'Authorization profile="UsernameToken"' \
+        && /Username=letme/.match(env['HTTP_X_WSSE']) \
+        && /PasswordDigest=YnZHI2jnwkDvIZhvinTOFSBrI\+FfaAuL2Pp4sdmYQhll\/5Hg1pQNP\/yZAxbrjRViRpk6qA+WOJphf8AtH0WUKQ==/.match(env['HTTP_X_WSSE']) \
+        && /Nonce/.match(env['HTTP_X_WSSE']) \
+        && /Created/.match(env['HTTP_X_WSSE'])
     [200, { 'Content-Type' => 'application/json' }, ['{ "posts": [{ "id": 1, "title": "first post", "body": "some content"}, { "id": 2, "title": "2nd post", "body": "some other body" }] }']]
   else
     [401, {}, ['']]
   end
-end
-
-# account endpoint; successful if a valid authentication token header is sent
-get '/accounts/1' do
-  if env['HTTP_X_AUTHENTICATION_TOKEN'] == 'secret token!'
-    [200, { 'Content-Type' => 'application/json' }, ['{ "account": { "id": 1, "login": "letme", "name": "Some Person"} }']]
-  else
-    [401, {}, ['']]
-  end
-end
-
-# session creation endpoint with additional authenticated user
-post '/v2/session' do
-  payload = request.body.read
-  json    = JSON.parse(payload)
-  if json['USER_NAME'] == 'letme' && json['PASS'] == 'in'
-    [200, { 'Content-Type' => 'application/json' }, ['{ "session": { "authToken": "secret token!", "accountId": 1 } }']]
-  else
-    [422, { 'Content-Type' => 'application/json' }, ['{ "error": "invalid credentials" }']]
-  end
-end
-
-# session deletion endpoint for V2
-delete '/v2/session' do
-  [200, { 'Content-Type' => 'application/json' }, ['']]
-end
-
-# session creation endpoint with custom response
-post '/v3/session' do
-  payload = request.body.read
-  json    = JSON.parse(payload)
-  if json['USER_NAME'] == 'letme' && json['PASS'] == 'in'
-    [200, { 'Content-Type' => 'application/json' }, ['{ "TOKEN": "secret token!", "AUTHENTICATED_USER": { "ID": 1 } }']]
-  else
-    [422, { 'Content-Type' => 'application/json' }, ['{ "MSG": "invalid credentials" }']]
-  end
-end
-
-# session deletion endpoint for V3
-delete '/v3/session' do
-  [200, { 'Content-Type' => 'application/json' }, ['']]
 end
 
 __END__
@@ -101,13 +75,15 @@ __END__
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ember-simple-auth - examples</title>
+    <title>ember-simple-wsse-auth - examples</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
     <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
     <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.js"></script>
     <script src="http://builds.emberjs.com/release/ember.js"></script>
-    <script src="ember-simple-auth.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha512.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
+    <script src="ember-simple-wsse-auth.js"></script>
   </head>
   <body style="padding-top: 50px;">
     <%= yield %>
@@ -137,10 +113,6 @@ __END__
         <a href="/3-authenticated-account" class="list-group-item">
           <h4 class="list-group-item-heading">Example with session account</h4>
           <p class="list-group-item-text">Full-fledged example with error handling and handling of the authenticated account.</p>
-        </a>
-        <a href="/4-custom-response" class="list-group-item">
-          <h4 class="list-group-item-heading">Full-fledged example</h4>
-          <p class="list-group-item-text">Full-fledged example with error handling, session account and custom server responses.</p>
         </a>
       </div>
     </div>

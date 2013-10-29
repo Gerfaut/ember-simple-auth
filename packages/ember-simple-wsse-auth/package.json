@@ -1,0 +1,29 @@
+{
+  "name": "ember-simple-wsse-auth",
+  "summary": "A lightweight library for WSSE based authentication with Ember.js.",
+  "description": "A lightweight and unobtrusive library for implementing WSSE based authentication with Ember.js that only has minimal requirements on the server interface.",
+  "homepage": "https://github.com/gerfaut/ember-simple-wsse-auth",
+  "authors": ["Christophe Leemans"],
+  "version": "0.0.1",
+
+  "directories": {
+    "lib": "lib"
+  },
+
+  "dependencies": {
+    "spade":         "~> 1.0",
+    "ember-runtime": "1.0.0"
+  },
+
+  "dependencies:development": {
+    "spade-qunit": "~> 1.0.0"
+  },
+
+  "bpm:build": {
+
+    "bpm_libs.js": {
+      "files": ["lib"],
+      "modes": "*"
+    }
+  }
+}

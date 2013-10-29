@@ -1,4 +1,4 @@
-name: Simple Auth
+name: Simple WSSE Auth
 assetfile: 'Assetfile'
 testing_suites:
   default:
@@ -11,4 +11,4 @@ testing_suites:
     - "package=all&jquery=1.10.2&nojshint=true"
     - "package=all&jquery=2.0.3&nojshint=true"
 testing_packages:
-  - ember-simple-auth
+  - ember-simple-wsse-auth

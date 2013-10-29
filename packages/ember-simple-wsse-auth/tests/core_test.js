@@ -40,7 +40,7 @@ var ajaxPrefilterMock = function(prefilter) {
   registeredAjaxPrefilter = prefilter;
 };
 
-module('Ember.SimpleAuth', {
+module('Ember.SimpleWsseAuth', {
   originalAjaxPrefilter: Ember.$.ajaxPrefilter,
   setup: function() {
     Ember.$.ajaxPrefilter = ajaxPrefilterMock;
@@ -51,34 +51,34 @@ module('Ember.SimpleAuth', {
 });
 
 test('saves serverSessionRoute if specified', function() {
-  Ember.SimpleAuth.setup(ContainerMock.create(), { serverSessionRoute: '/route' });
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { serverSessionRoute: '/route' });
 
-  equal(Ember.SimpleAuth.serverSessionRoute, '/route', 'Ember.SimpleAuth saves serverSessionRoute when specified.');
+  equal(Ember.SimpleWsseAuth.serverSessionRoute, '/route', 'Ember.SimpleWsseAuth saves serverSessionRoute when specified.');
 });
 
 test('saves routeAfterLogin if specified', function() {
-  Ember.SimpleAuth.setup(ContainerMock.create(), { routeAfterLogin: 'somewhere' });
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { routeAfterLogin: 'somewhere' });
 
-  equal(Ember.SimpleAuth.routeAfterLogin, 'somewhere', 'Ember.SimpleAuth saves routeAfterLogin when specified.');
+  equal(Ember.SimpleWsseAuth.routeAfterLogin, 'somewhere', 'Ember.SimpleWsseAuth saves routeAfterLogin when specified.');
 });
 
 test('saves routeAfterLogout if specified', function() {
-  Ember.SimpleAuth.setup(ContainerMock.create(), { routeAfterLogout: 'somewhere' });
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { routeAfterLogout: 'somewhere' });
 
-  equal(Ember.SimpleAuth.routeAfterLogout, 'somewhere', 'Ember.SimpleAuth saves routeAfterLogout when specified.');
+  equal(Ember.SimpleWsseAuth.routeAfterLogout, 'somewhere', 'Ember.SimpleWsseAuth saves routeAfterLogout when specified.');
 });
 
 test('injects a session object in models, views, controllers and routes', function() {
   var container = ContainerMock.create();
-  Ember.SimpleAuth.setup(container);
+  Ember.SimpleWsseAuth.setup(container);
 
   Ember.$.each(['model', 'view', 'controller', 'view'], function(i, component) {
     var injection = Ember.$.grep(container.injections, function(injection) {
       return injection.target === component;
     })[0];
 
-    equal(injection.property, 'session', 'Ember.SimpleAuth injects a session into ' + component + '.');
-    equal(injection.object.constructor, Ember.SimpleAuth.Session, 'Ember.SimpleAuth injects a session into ' + component + '.');
+    equal(injection.property, 'session', 'Ember.SimpleWsseAuth injects a session into ' + component + '.');
+    equal(injection.object.constructor, Ember.SimpleWsseAuth.Session, 'Ember.SimpleWsseAuth injects a session into ' + component + '.');
   });
 });
 
@@ -86,13 +86,13 @@ test('registers an AJAX prefilter that adds the authToken for non-crossdomain re
   var xhrMock = XhrMock.create();
   var token = Math.random().toString(36);
   sessionStorage.authToken = token;
-  Ember.SimpleAuth.setup(ContainerMock.create());
+  Ember.SimpleWsseAuth.setup(ContainerMock.create());
 
   registeredAjaxPrefilter({}, {}, xhrMock);
-  equal(xhrMock.requestHeaders['X-AUTHENTICATION-TOKEN'], token, 'Ember.SimpleAuth registers an AJAX prefilter that adds the authToken for non-crossdomain requests.');
+  equal(xhrMock.requestHeaders['X-AUTHENTICATION-TOKEN'], token, 'Ember.SimpleWsseAuth registers an AJAX prefilter that adds the authToken for non-crossdomain requests.');
 
   xhrMock = XhrMock.create();
   xhrMock.crossDomain = true;
   registeredAjaxPrefilter({}, {}, xhrMock);
-  equal(xhrMock.requestHeaders['X-AUTHENTICATION-TOKEN'], undefined, 'Ember.SimpleAuth registers an AJAX prefilter that does not add the authToken for crossdomain requests.');
+  equal(xhrMock.requestHeaders['X-AUTHENTICATION-TOKEN'], undefined, 'Ember.SimpleWsseAuth registers an AJAX prefilter that does not add the authToken for crossdomain requests.');
 });
