@@ -1,11 +1,17 @@
-#  Work In Progress. Please DO NOT USE right now.
+##First Version
+####TODO: 
+- **Documentation**
+- WSSE Explanation
+- Unit tests
 
-[![Build Status](https://travis-ci.org/simplabs/ember-simple-auth.png)](https://travis-ci.org/simplabs/ember-simple-auth)
+[![Build Status](https://travis-ci.org/gerfaut/ember-simple-wsse-auth.png)](https://travis-ci.org/gerfaut/ember-simple-wsse-auth)
+
+## Up-to-date Documentation must be done.
 
 #  Ember.SimpleWsseAuth
 
 Ember.SimpleWsseAuth is a lightweight and unobtrusive library for implementing
-token based authentication with [Ember.js](http://emberjs.com) applications. It
+WSSE authentication with [Ember.js](http://emberjs.com) applications. It
 has minimal requirements with respect to the application structure, routes etc.
 as well as the server interface.
 
