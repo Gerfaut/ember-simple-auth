@@ -50,12 +50,6 @@ module('Ember.SimpleWsseAuth', {
   }
 });
 
-test('saves serverSessionRoute if specified', function() {
-  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { serverSessionRoute: '/route' });
-
-  equal(Ember.SimpleWsseAuth.serverSessionRoute, '/route', 'Ember.SimpleWsseAuth saves serverSessionRoute when specified.');
-});
-
 test('saves routeAfterLogin if specified', function() {
   Ember.SimpleWsseAuth.setup(ContainerMock.create(), { routeAfterLogin: 'somewhere' });
 
@@ -66,6 +60,30 @@ test('saves routeAfterLogout if specified', function() {
   Ember.SimpleWsseAuth.setup(ContainerMock.create(), { routeAfterLogout: 'somewhere' });
 
   equal(Ember.SimpleWsseAuth.routeAfterLogout, 'somewhere', 'Ember.SimpleWsseAuth saves routeAfterLogout when specified.');
+});
+
+test('saves serverSaltRoute if specified', function() {
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { serverSaltRoute: 'somewhere' });
+
+  equal(Ember.SimpleWsseAuth.serverSaltRoute, 'somewhere', 'Ember.SimpleWsseAuth saves serverSaltRoute when specified.');
+});
+
+test('saves serverCheckAccessRoute if specified', function() {
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { serverCheckAccessRoute: 'somewhere' });
+
+  equal(Ember.SimpleWsseAuth.serverCheckAccessRoute, 'somewhere', 'Ember.SimpleWsseAuth saves serverCheckAccessRoute when specified.');
+});
+
+test('saves passwordEncodingIterations if specified', function() {
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { passwordEncodingIterations: 2000 });
+
+  equal(Ember.SimpleWsseAuth.passwordEncodingIterations, 2000, 'Ember.SimpleWsseAuth saves passwordEncodingIterations when specified.');
+});
+
+test('saves passwordEncodingAsBase64 if specified', function() {
+  Ember.SimpleWsseAuth.setup(ContainerMock.create(), { passwordEncodingAsBase64: 'false' });
+
+  equal(Ember.SimpleWsseAuth.passwordEncodingAsBase64, false, 'Ember.SimpleWsseAuth saves passwordEncodingAsBase64 when specified.');
 });
 
 test('injects a session object in models, views, controllers and routes', function() {
@@ -82,7 +100,7 @@ test('injects a session object in models, views, controllers and routes', functi
   });
 });
 
-test('registers an AJAX prefilter that adds the authToken for non-crossdomain requests', function() {
+test('registers an AJAX prefilter that adds the WSSE token for non-crossdomain requests', function() {
   var xhrMock = XhrMock.create();
   var token = Math.random().toString(36);
   sessionStorage.authToken = token;

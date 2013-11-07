@@ -1,21 +1,32 @@
+/*global CryptoJS*/
+
 Ember.SimpleWsseAuth = {};
 Ember.SimpleWsseAuth.BuildXWsseHeader = function(session) {
     var username = session.get('username');
-    var passwordDigest = session.get('passwordDigest');
+    var passwordEncoded = session.get('passwordEncoded');
     var nonce = this.GenerateNonce();
     var createdDate = this.GenerateCreatedDate();
-    return "UsernameToken Username=" + username + ", PasswordDigest=" + passwordDigest + ", Nonce=" + nonce + ", Created=" + createdDate;
+    var passwordDigest = this.GeneratePasswordDigest(nonce, createdDate, passwordEncoded);
+    return 'UsernameToken Username="' + username + '", PasswordDigest="' + passwordDigest + '", Nonce="' + nonce + '", Created="' + createdDate + '"';
 };
 Ember.SimpleWsseAuth.GenerateNonce = function() {
-    return CryptoJS.SHA512(Math.random().toString(36).substring(2)).toString();
+    var nonce = Math.random().toString(36).substring(2);
+    return CryptoJS.enc.Utf8.parse(nonce).toString(CryptoJS.enc.Base64);
+};
+Ember.SimpleWsseAuth.GeneratePasswordDigest = function(nonce, createdDate, passwordEncoded) {
+    var nonce_64 = CryptoJS.enc.Base64.parse(nonce);
+    var _sha1 = CryptoJS.SHA1(nonce_64.concat(CryptoJS.enc.Utf8.parse(createdDate).concat(CryptoJS.enc.Utf8.parse(passwordEncoded))));
+    var result = _sha1.toString(CryptoJS.enc.Base64);
+    return result;
+    //return CryptoJS.SHA1(CryptoJS.enc.Base64.parse(nonce) + createdDate + passwordEncoded).toString(CryptoJS.enc.Base64);
 };
 Ember.SimpleWsseAuth.EncodePassword = function(password, salt) {
     var salted = password + '{' + salt + '}';
-    var passwordDigest = CryptoJS.SHA512(salted);
+    var passwordEncoded = CryptoJS.SHA512(salted);
     for(var i = 1; i < this.passwordEncodingIterations; i++) { //TODO use webworker
-	passwordDigest = CryptoJS.SHA512(passwordDigest.concat(CryptoJS.enc.Utf8.parse(salted)));
+	passwordEncoded = CryptoJS.SHA512(passwordEncoded.concat(CryptoJS.enc.Utf8.parse(salted)));
     }
-    return this.passwordEncodingAsBase64 ? passwordDigest.toString(CryptoJS.enc.Base64) : passwordDigest;
+    return this.passwordEncodingAsBase64 ? passwordEncoded.toString(CryptoJS.enc.Base64) : passwordEncoded;
 };
 Ember.SimpleWsseAuth.GenerateCreatedDate = function() {
     return new Date().toISOString();
@@ -29,7 +40,7 @@ Ember.SimpleWsseAuth.setup = function(app, options) {
   this.serverSaltRoute = options.serverSaltRoute || '/salt/{username}';
   this.serverCheckAccessRoute = options.serverCheckAccessRoute || '/check-access';
   this.passwordEncodingIterations = options.passwordEncodingIterations || 5000;
-  this.passwordEncodingAsBase64 = options.passwordEncodingIterations || true;
+  this.passwordEncodingAsBase64 = options.passwordEncodingAsBase64 === 'false' ? false : true;
 
   var session = Ember.SimpleWsseAuth.Session.create();
   app.register('simple_wsse_auth:session', session, { instantiate: false, singleton: true });
@@ -39,7 +50,7 @@ Ember.SimpleWsseAuth.setup = function(app, options) {
   });
 
   Ember.$.ajaxPrefilter(function(options, originalOptions, jqXHR) {
-    if (!jqXHR.crossDomain && session.get('isValid')) {
+    if (!jqXHR.crossDomain && session.get('isAuthValid')) {
       jqXHR.setRequestHeader('Authorization',  'Authorization profile="UsernameToken"');
       jqXHR.setRequestHeader('X-WSSE',  Ember.SimpleWsseAuth.BuildXWsseHeader(session));
     }

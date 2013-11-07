@@ -17,18 +17,13 @@ get '/' do
   erb :index
 end
 
-# serve the dependency JS file from the /packages directory
-get '/base64_encode.js' do
-  File.read(File.join(base_dir, '..', 'packages/phpjs', 'base64_encode.js'))
-end
-
 # serve the JS file from the /dist directory
 get '/ember-simple-wsse-auth.js' do
   File.read(File.join(base_dir, '..', 'dist', 'ember-simple-wsse-auth.js'))
 end
 
 # serve the HTML files from the respective example directoy
-%w(1-simple 2-errors 3-authenticated-account 4-custom-response).each do |example|
+%w(1-simple 2-errors 3-authenticated-account).each do |example|
   get "/#{example}" do
     erb File.read(File.join(base_dir, example, 'index.html'))
   end
@@ -47,7 +42,7 @@ get '/check-access' do
   
   if env['HTTP_AUTHORIZATION'] == 'Authorization profile="UsernameToken"' \
         && /Username=letme/.match(env['HTTP_X_WSSE']) \
-        && /PasswordDigest=|YnZHI2jnwkDvIZhvinTOFSBrI\+FfaAuL2Pp4sdmYQhll\/5Hg1pQNP\/yZAxbrjRViRpk6qA+WOJphf8AtH0WUKQ==/.match(env['HTTP_X_WSSE']) \
+        && /PasswordDigest=/.match(env['HTTP_X_WSSE']) \
         && /Nonce/.match(env['HTTP_X_WSSE']) \
         && /Created/.match(env['HTTP_X_WSSE'])
     [200, { 'Content-Type' => 'application/json' }, ['{ "success": "login successful" }']] 
@@ -60,7 +55,7 @@ end
 get '/posts' do
   if env['HTTP_AUTHORIZATION'] == 'Authorization profile="UsernameToken"' \
         && /Username=letme/.match(env['HTTP_X_WSSE']) \
-        && /PasswordDigest=YnZHI2jnwkDvIZhvinTOFSBrI\+FfaAuL2Pp4sdmYQhll\/5Hg1pQNP\/yZAxbrjRViRpk6qA+WOJphf8AtH0WUKQ==/.match(env['HTTP_X_WSSE']) \
+        && /PasswordDigest=/.match(env['HTTP_X_WSSE']) \
         && /Nonce/.match(env['HTTP_X_WSSE']) \
         && /Created/.match(env['HTTP_X_WSSE'])
     [200, { 'Content-Type' => 'application/json' }, ['{ "posts": [{ "id": 1, "title": "first post", "body": "some content"}, { "id": 2, "title": "2nd post", "body": "some other body" }] }']]
@@ -82,6 +77,7 @@ __END__
     <script src="http://cdnjs.cloudflare.com/ajax/libs/handlebars.js/1.0.0/handlebars.js"></script>
     <script src="http://builds.emberjs.com/release/ember.js"></script>
     <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha512.js"></script>
+    <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha1.js"></script>
     <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/components/enc-base64-min.js"></script>
     <script src="ember-simple-wsse-auth.js"></script>
   </head>
@@ -118,7 +114,3 @@ __END__
     </div>
   </div>
 </div>
-<script>
-  delete sessionStorage.authToken;
-  delete sessionStorage.account;
-</script>

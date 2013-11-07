@@ -15,6 +15,7 @@ distros.each do |name, modules|
 
     match "#{name}.js" do
       filter VersionInfo
+      filter EmberLicenseFilter
     end
 
     match "min/#{name}.js" do

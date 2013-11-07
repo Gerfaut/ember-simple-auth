@@ -2,15 +2,15 @@ Ember.SimpleWsseAuth.Session = Ember.Object.extend({
   init: function() {
     this._super();
     this.set('username', sessionStorage.username);
-    this.set('passwordDigest', sessionStorage.passwordDigest);
-    if(sessionStorage.username !== undefined && sessionStorage.passwordDigest !== undefined) {
+    this.set('passwordEncoded', sessionStorage.passwordEncoded);
+    if(sessionStorage.username !== undefined && sessionStorage.passwordEncoded !== undefined) {
       this.set('accountRestored', true);
     }
   },
   setup: function(serverSalt, password) {
     var salt = (serverSalt.session || {}).salt;
     var username = (serverSalt.session || {}).username;
-    this.set('passwordDigest', Ember.SimpleWsseAuth.EncodePassword(password, salt));
+    this.set('passwordEncoded', Ember.SimpleWsseAuth.EncodePassword(password, salt));
     this.set('username', username);
     this.set('accountRestored', true);
   },
@@ -19,16 +19,15 @@ Ember.SimpleWsseAuth.Session = Ember.Object.extend({
   },
   destroy: function() {
     this.set('username', undefined);
-    this.set('passwordDigest', undefined);
+    this.set('passwordEncoded', undefined);
     this.set('accessChecked', undefined);
     this.set('accountRestored', undefined);
   },
-  isValid: Ember.computed('username', 'passwordDigest', function() {
-    return !Ember.isEmpty(this.get('username')) && !Ember.isEmpty(this.get('passwordDigest'));
+  isAuthValid: Ember.computed('username', 'passwordEncoded', function() {
+    return !Ember.isEmpty(this.get('username')) && !Ember.isEmpty(this.get('passwordEncoded'));
   }),
-  isAuthenticated: Ember.computed('username', 'passwordDigest', 'accessChecked', function() {
-    return !Ember.isEmpty(this.get('username')) && this.get('accessChecked')
-            && this.get('isValid');
+  isAuthenticated: Ember.computed('username', 'passwordEncoded', 'accessChecked', function() {
+    return !Ember.isEmpty(this.get('username')) && this.get('accessChecked') && this.get('isAuthValid');
   }),
   authDataObserver: Ember.observer(function() {
     var username = this.get('username');
@@ -38,11 +37,11 @@ Ember.SimpleWsseAuth.Session = Ember.Object.extend({
       sessionStorage.username = this.get('username');
     }
     
-    var passwordDigest = this.get('passwordDigest');
-    if (Ember.isEmpty(passwordDigest)) {
-      delete sessionStorage.passwordDigest;
+    var passwordEncoded = this.get('passwordEncoded');
+    if (Ember.isEmpty(passwordEncoded)) {
+      delete sessionStorage.passwordEncoded;
     } else {
-      sessionStorage.passwordDigest = this.get('passwordDigest');
+      sessionStorage.passwordEncoded = this.get('passwordEncoded');
     }
-  }, 'passwordDigest', 'username')
+  }, 'passwordEncoded', 'username')
 });
